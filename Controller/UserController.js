@@ -192,36 +192,35 @@ exports.loginUser= async function (request, response, next) {
             };
             universalFunction.sendResponse(request,response, responseData, next);
         } else {
-            const salt = crypto.randomBytes(16).toString("hex");
-            userData[0].authToken = salt;
+            const salt = "Humaira"
+            // userData[0].authToken = salt;
 
-            userData[0].save(async (error, result) => {
-                if (error) {
-                    throw new Error(error);
-                }
-                var jsonPayload = {
-                   userName:userName,
-                    mpin:mpin
-                    
-                };
-                const jwtData = jwt.sign(jsonPayload, `${secretyKey}-${salt}`, {
-                    expiresIn: "1d",
-                });
-                
-               console.log("jwtData",jwtData)
+            var jsonPayload = {
+                userName:userName,
+                 mpin:mpin
+                 
+             };
+             const jwtData = jwt.sign(jsonPayload,secretyKey, {
+                 expiresIn: "1d",
+             });
 
-                let responseData = {
-                    status: "SUCCESS",
-                    message: "Login successfully",
-                    data: {
-                        verified: "true",
-                    userName:userName,
-                        authToken: jwtData,
-                    },
-                };
-                universalFunction.sendResponse(request, response, responseData, next);
-           
-            })
+             console.log(jwtData);
+
+             
+        // Update user's authToken field and save to database
+        userData[0].authToken = jwtData;
+        await userData[0].save();
+
+        let responseData = {
+            status: "SUCCESS",
+            message: "Login successfully",
+            data: {
+                verified: true,
+                userName: userName,
+                authToken: jwtData,
+            },
+        };
+        universalFunction.sendResponse(request, response, responseData, next);
         }
 
     } catch (error) {
@@ -229,6 +228,8 @@ exports.loginUser= async function (request, response, next) {
     }
 
 };
+
+
 
 exports.updatePhoneNumber = async function (request, response, next) {
     try {
