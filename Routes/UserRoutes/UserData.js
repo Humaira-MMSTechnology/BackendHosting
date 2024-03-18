@@ -8,11 +8,12 @@ const userControllerControl = require('../../Controller/UserController');
 const universalFunction=require('../../Functions/universalFunction');
 const validationFunction = require("../../Functions/validationFunction");
 const authnticateUser = require("../../Functions/AuthnticateUser")
-
+const {validateUser} = require("../../Functions/AuthnticateUser")
 // Create a separate collection for storing deleted IDs
-// const DeletedIds = mongoose.model('DeletedIds', new mongoose.Schema({
+// const DvalidateUsereletedIds = mongoose.model('DeletedIds', new mongoose.Schema({
 //     id: { type: Number, required: true }
 //   }));
+const userTable = require("../../Models/UserData");
 
 //[search by userName,displayName,id]
 
@@ -45,6 +46,12 @@ Router.post('/login',
     // validationFunction.validateUser(userSchema.userLoginSchema),
     userControllerControl.loginUser
  );
+
+ Router.post("/logout",authnticateUser.validateUser,async(req,res) =>{
+    console.log("req.user",req.user[0]);
+    req.user[0].authToken="";
+    await req.user[0].save();
+ });
 
 Router.route('/save').post(
     validationFunction.validateUser(userSchema.saveUserDataSchema),
