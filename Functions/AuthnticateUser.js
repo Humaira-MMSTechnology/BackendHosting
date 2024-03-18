@@ -1,111 +1,64 @@
-const userController = require('../Controller/UserTableController');
-const userSchema = require('../Schemas/UserSchema');
-// const universalFunction=require('../../Functions/universalFunction');
-// const validationFunction = require("../../Functions/validationFunction");
-const Router = require("express").Router();
-const userControllerControl = require('../Controller/UserController');
-// const userSchema = require('../../Schemas/UserSchema');
-const universalFunction=require('../../Functions/universalFunction');
-const validationFunction = require("../../Functions/validationFunction");
-const authnticateUser = require("../../Functions/AuthnticateUser")
-const {validateUser} = require("../../Functions/AuthnticateUser")
-// Create a separate collection for storing deleted IDs
-// const DvalidateUsereletedIds = mongoose.model('DeletedIds', new mongoose.Schema({
-//     id: { type: Number, required: true }
-//   }));
-const userTable = require("../../Models/UserData");
+// authenticationMiddleware.js
 
-//[search by userName,displayName,id]
+const jwt = require('jsonwebtoken');
+const UserTable = require('../Models/UserData');
+const secretyKey = "abcdefghijklmnopqrstuvwxyzabcdef";
+const salt = "Humaira";
 
-Router.get("/search",
-universalFunction.authenticateUser,
-userController.Search
-);
+module.exports.authenticateUser = async function(req, res, next) {
+    try {
+        // Extract the authentication token from the request headers
+        const authToken = req.headers.authorization;
+        // console.log("authToken in authentication at 000  humaira",authToken)
 
-Router.get("/columnSearch",
-userController.columnSearch
-);
+        // Verify the authentication token
+        if (!authToken) {
+            return res.status(401).json({ message: 'Unauthorized. Missing authentication token.' });
+        }
 
-Router.get("/searchById",
-userController.SearchById
-);
+        // Verify the token
+        const decodedToken = jwt.verify(authToken, secretyKey);
 
-Router.get("/export",
-userController.exportToExcel
-)
+        // console.log("DEcoded  token ",decodedToken )
+        // Find the user based on the user ID from the decoded token]
+        // console.log("decode ka username " ,decodedToken.userName);
+        const user = await UserTable.find({userName:decodedToken.userName});
+        
+// console.log(user);
+        if (!user) {
+            return res.status(401).json({ message: 'Unauthorized. User not found.' });
+        }
 
-Router.get("/searchByDisplayName",
-userController.SearchByDisplayName
-);
-
-Router.get("/searchByUserName",
-userController.SearchByUserName
-);
-
-Router.post('/login',
-    // validationFunction.validateUser(userSchema.userLoginSchema),
-    userControllerControl.loginUser
- );
-
- Router.post("/logout",authnticateUser.validateUser,async(req,res) =>{
-    console.log("req.user",req.user[0]);
-    req.user[0].authToken="";
-    await req.user[0].save();
- });
-
-Router.route('/save').post(
-    validationFunction.validateUser(userSchema.saveUserDataSchema),
-    userController.saveUserData
- );
-
-Router.route('/getAllUserData').get(
-
-    // universalFunction.authenticateUser,
-    // authnticateUser.authenticateUser,
-      userController.getAllUserDataList
-);
-
-Router.route('/getAllUserDataSearch').get(
-    universalFunction.authenticateUser,
-      userController.getAllUserDataSearch
-);
-
-Router.route("/getOne/:userId").get(
-    universalFunction.authenticateUser,
-    userController.getOneData
-)
-
-Router.route('/updateUserDetails/:userId').patch(
-    universalFunction.authenticateUser,
-   userController.updateUserDetails
-);
-
-Router.route('/updateUserPassword/:userId').patch(
-    universalFunction.authenticateUser,
-   userController.updateUserPassword
-);
+        // Attach the authenticated user information to the request object
+        req.user = user;
+        next();
+    } catch (error) {
+        return res.status(401).json({ message: 'Unauthorized. Invalid authentication token.' });
+    }
+};
 
 
-Router.route('/deleteUserDetails/:id').delete(
-    universalFunction.authenticateUser,
-    userController.deleteUser
-);
+module.exports.validateUser = async (req,res,next) => {
+    try{
+        // const salt = "Humaira";
+        const token = req.headers.authorization;
+        if (!token) {
+            return res.status(401).json({ message: 'Unauthorized. Missing authentication token.' });
+        }
 
+        const verifyToken = jwt.verify(token,secretyKey);
+        // console.log(verifyToken);
+        // console.log(token);
+        const usern = verifyToken.userName;
+        // console.log(usern);
+        const user = await UserTable.find({userName : usern});
+        // console.log(user);
 
-exports.Router=Router;
+        req.user = user;
 
+        next();
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    }catch(err){
+        console.log(err);
+    }
+}
