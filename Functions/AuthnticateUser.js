@@ -1,9 +1,9 @@
-const userController = require('../../Controller/UserTableController');
+const userController = require('../Controller/UserTableController');
 const userSchema = require('../../Schemas/UserSchema');
 // const universalFunction=require('../../Functions/universalFunction');
 // const validationFunction = require("../../Functions/validationFunction");
 const Router = require("express").Router();
-const userControllerControl = require('../../Controller/UserController');
+const userControllerControl = require('../Controller/UserController');
 // const userSchema = require('../../Schemas/UserSchema');
 const universalFunction=require('../../Functions/universalFunction');
 const validationFunction = require("../../Functions/validationFunction");
