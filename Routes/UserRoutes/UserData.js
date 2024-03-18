@@ -51,6 +51,7 @@ Router.post('/login',
     console.log("req.user",req.user[0]);
     req.user[0].authToken="";
     await req.user[0].save();
+     res.json({status:201,message:"user logged out"});
  });
 
 Router.route('/save').post(
